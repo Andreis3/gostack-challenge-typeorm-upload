@@ -71,9 +71,28 @@ transactionsRouter.post(
   async (request, response) => {
     const importTransaction = new ImportTransactionsService();
 
-    const transaction = await importTransaction.execute(request.file.path);
+    const createTransactionsByCSV = await importTransaction.execute(
+      request.file.path,
+    );
 
-    return response.status(201).json({ transaction });
+    const transactions = createTransactionsByCSV.reduce<any>(
+      (prev, curr) => [
+        ...prev,
+        {
+          id: curr.id,
+          title: curr.title,
+          value: curr.value,
+          type: curr.type,
+          category: {
+            id: curr.category.id,
+            title: curr.category.title,
+          },
+        },
+      ],
+      [],
+    );
+
+    return response.status(201).json({ transactions });
   },
 );
 
